@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 
@@ -10,10 +12,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SIGN LANGUAGE TRANSLATOR',
-      home: const HomePage(),
+      home: HomePage(),
     );
   }
 }
@@ -33,8 +35,18 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _initializeControllerFuture = _initializeCamera();
   }
-
+Future<void> _initializeCamera() async {
+    final cameras = await availableCameras();
+    final firstCamera = cameras.first;
+    _controller = CameraController(
+      firstCamera,
+      ResolutionPreset.medium,
+    );
+    await _controller.initialize();
+    setState(() => _isCameraInitialized = true);
+  }
   @override
   void dispose() {
     _controller.dispose();
@@ -45,7 +57,7 @@ class _HomePageState extends State<HomePage> {
     return Container(
       width: double.infinity,
       height: double.infinity,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,
           image: AssetImage('assets/images/anieth.png'),
@@ -54,7 +66,7 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Spacer(), // Push button towards the bottom
+          const Spacer(), // Push button towards the bottom
           ElevatedButton.icon(
             onPressed: () async {
               final cameras = await availableCameras();
@@ -66,10 +78,10 @@ class _HomePageState extends State<HomePage> {
               await _controller.initialize();
               setState(() => _isCameraInitialized = true);
             },
-            icon: Icon(Icons.camera_alt),
-            label: Text('START CAMERA'),
+            icon: const Icon(Icons.camera_alt),
+            label: const Text('START CAMERA'),
           ),
-          SizedBox(height: 60), // Add some vertical spacing
+          const SizedBox(height: 60), // Add some vertical spacing
         ],
       ),
     );
@@ -79,23 +91,47 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('SIGN LANGUAGE TRANSLATOR'),
+        title: const Text('SIGN LANGUAGE TRANSLATOR'),
       ),
-      body:
-          _isCameraInitialized ? CameraPreview(_controller) : _buildStartPage(),
+      body: _isCameraInitialized
+          ? Stack(
+              children: [
+                Positioned.fill(child: CameraPreview(_controller)),
+                Positioned(
+                  bottom: 70,
+                  left: 5,
+                  right: 5,
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    color: Colors.white54,
+                    child: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text(
+                        'Detecting...',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : _buildStartPage(),
       floatingActionButton: _isCameraInitialized
           ? Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 FloatingActionButton.extended(
                   onPressed: () {
                     _controller.dispose(); // Stop the camera
                     setState(() => _isCameraInitialized = false); // Update flag
                   },
-                  label: Text('STOP'),
-                  icon: Icon(Icons.stop),
+                  label: const Text('Upload'),
+                  icon: const Icon(Icons.video_camera_back_rounded),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 FloatingActionButton.extended(
                   onPressed: () async {
                     try {
@@ -110,8 +146,8 @@ class _HomePageState extends State<HomePage> {
                       print('Error: $e');
                     }
                   },
-                  label: Text('START TRANSLATION'),
-                  icon: Icon(Icons.g_translate),
+                  label: const Text('START TRANSLATION'),
+                  icon: const Icon(Icons.g_translate),
                 ),
               ],
             )
