@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:sltproject1/imagesourse.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,28 +29,30 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late CameraController _controller;
-  late Future<void> _initializeControllerFuture;
-  bool _isCameraInitialized = false;
+  late CameraController controller;
+  late Future<void> initializeControllerFuture;
+  bool isCameraInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeControllerFuture = _initializeCamera();
+    initializeControllerFuture = _initializeCamera();
   }
-Future<void> _initializeCamera() async {
+
+  Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
     final firstCamera = cameras.first;
-    _controller = CameraController(
+    controller = CameraController(
       firstCamera,
       ResolutionPreset.medium,
     );
-    await _controller.initialize();
-    setState(() => _isCameraInitialized = true);
+    await controller.initialize();
+    setState(() => isCameraInitialized = true);
   }
+
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -71,12 +74,12 @@ Future<void> _initializeCamera() async {
             onPressed: () async {
               final cameras = await availableCameras();
               final firstCamera = cameras.first;
-              _controller = CameraController(
+              controller = CameraController(
                 firstCamera,
                 ResolutionPreset.medium,
               );
-              await _controller.initialize();
-              setState(() => _isCameraInitialized = true);
+              await controller.initialize();
+              setState(() => isCameraInitialized = true);
             },
             icon: const Icon(Icons.camera_alt),
             label: const Text('START CAMERA'),
@@ -93,12 +96,12 @@ Future<void> _initializeCamera() async {
       appBar: AppBar(
         title: const Text('SIGN LANGUAGE TRANSLATOR'),
       ),
-      body: _isCameraInitialized
+      body: isCameraInitialized
           ? Stack(
               children: [
-                Positioned.fill(child: CameraPreview(_controller)),
+                Positioned.fill(child: CameraPreview(controller)),
                 Positioned(
-                  bottom: 70,
+                  bottom: 90,
                   left: 5,
                   right: 5,
                   child: Container(
@@ -119,39 +122,59 @@ Future<void> _initializeCamera() async {
               ],
             )
           : _buildStartPage(),
-      floatingActionButton: _isCameraInitialized
+      floatingActionButton: isCameraInitialized
           ? Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                FloatingActionButton.extended(
-                  onPressed: () {
-                    _controller.dispose(); // Stop the camera
-                    setState(() => _isCameraInitialized = false); // Update flag
-                  },
-                  label: const Text('Upload'),
-                  icon: const Icon(Icons.video_camera_back_rounded),
+                const SizedBox(width: 10),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.red,
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const VideoPlayers()));
+                    },
+                    heroTag: 'video0',
+                    tooltip: 'Pick Video from gallery',
+                    child: const Icon(Icons.video_library),
+                  ),
                 ),
-                const SizedBox(width: 16),
-                FloatingActionButton.extended(
-                  onPressed: () async {
-                    try {
-                      // Ensure that the camera is initialized before capturing pictures
-                      await _initializeControllerFuture;
-                      // Perform translation or other action here
-                      // This could include processing the camera image
-                      // or sending it to a translation service
-                      print('Translation started');
-                    } catch (e) {
-                      // Handle any errors that occur during translation
-                      print('Error: $e');
-                    }
-                  },
-                  label: const Text('START TRANSLATION'),
-                  icon: const Icon(Icons.g_translate),
+                const SizedBox(
+                  width: 100,
                 ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.amber,
+                    onPressed: () async {
+                      try {
+                        // Ensure that the camera is initialized before capturing pictures
+                        await initializeControllerFuture;
+                        // Perform translation or other action here
+                        // This could include processing the camera image
+                        // or sending it to a translation service
+
+                        print('Translation started');
+                      } catch (e) {
+                        // Handle any errors that occur during translation
+                        print('Error: $e');
+                      }
+                    },
+                    heroTag: 'translate0',
+                    tooltip: 'START TRANSLATION',
+                    child: const Icon(Icons.g_translate),
+                  ),
+                ),
+                const SizedBox(width: 10),
               ],
             )
           : null,
     );
   }
+
+ }
+
+enum ImageSource {
+  camera,
+  gallery,
 }
