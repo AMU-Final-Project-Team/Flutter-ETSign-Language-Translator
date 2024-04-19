@@ -70,12 +70,6 @@ class VideoPlayerScreenState extends State<VideoPlayerScreen> {
               _isPlaying ? Icons.pause : Icons.play_arrow,
             ),
           ),
-          FloatingActionButton(
-            onPressed: () {
-              print(_controller.value.isInitialized);
-            },
-            child: const Icon(Icons.info),
-          ),
         ],
       ),
     );
